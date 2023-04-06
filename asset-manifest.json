@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/fallwest/trybehave/static/css/main.b579f81f.css",
-    "main.js": "/fallwest/trybehave/static/js/main.826b959c.js",
+    "main.js": "/fallwest/trybehave/static/js/main.7f5ea463.js",
     "static/js/787.d6aacf2a.chunk.js": "/fallwest/trybehave/static/js/787.d6aacf2a.chunk.js",
-    "static/js/670.eef79d50.chunk.worker.js": "/fallwest/trybehave/static/js/670.eef79d50.chunk.worker.js",
+    "static/js/670.73c5f122.chunk.worker.js": "/fallwest/trybehave/static/js/670.73c5f122.chunk.worker.js",
     "index.html": "/fallwest/trybehave/index.html",
     "main.b579f81f.css.map": "/fallwest/trybehave/static/css/main.b579f81f.css.map",
-    "main.826b959c.js.map": "/fallwest/trybehave/static/js/main.826b959c.js.map",
+    "main.7f5ea463.js.map": "/fallwest/trybehave/static/js/main.7f5ea463.js.map",
     "787.d6aacf2a.chunk.js.map": "/fallwest/trybehave/static/js/787.d6aacf2a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.b579f81f.css",
-    "static/js/main.826b959c.js"
+    "static/js/main.7f5ea463.js"
   ]
 }
