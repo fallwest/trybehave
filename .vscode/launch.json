@@ -22,6 +22,9 @@
             "args": [
                 "-i",
                 "${relativeFile}",
+                "-d",
+                "-f",
+                "json"
             ]
         }
     ]

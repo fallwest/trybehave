@@ -1,8 +1,6 @@
-
 /* eslint-disable no-undef */
 /* eslint-disable no-restricted-globals */
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js");
-
 async function loadPyodideAndPackages() {
     self.pyodide = await loadPyodide();
   await self.pyodide.loadPackage(["numpy", "pytz"]);
@@ -22,14 +20,13 @@ const runFeatures = (args) => {
 }
 
 const getFeatureJson = (feature) => {
-    runFeatures(`["-i", "${feature}", "--f=json", "--dry-run", "--no-summary",
-    "--no-snippets", "-o", "reports/feature.json"]`);
+    runFeatures(`["-i", "/working/${feature}", "--f=json", "--dry-run", "--no-summary",
+    "--no-snippets", "-o", "feature.json"]`);
     self.pyodide.runPython(`import json
 import ast
 
 def get_json_step_report():
-    json_file = open("reports/feature.json")
-    with open("reports/feature.json", "r") as file:
+    with open("feature.json", "r") as file:
         data = file.read()
     return json.loads(data)
 
@@ -100,17 +97,98 @@ self.onmessage = async (e) => {
         await micropip.install("behave");
         // make sure loading is done
         behaveReadyPromise = new Promise((resolve) => {
+            const mountDir = "/working"
+            self.pyodide.FS.mkdir(mountDir);
+            self.pyodide.FS.mount(self.pyodide.FS.filesystems.IDBFS, { root: "." }, mountDir);
             self.pyodide.FS.mkdir("reports");
-            self.pyodide.FS.mkdir("features");
-            self.pyodide.FS.mkdir("features/steps");
+            self.pyodide.FS.mkdir("/working/features");
+            self.pyodide.FS.mkdir("/working/features/steps");
             postMessage({ type: "log", msg: "initialization done!" });
             postMessage({ type: "init" });
             resolve();
         });
     }
+    if (e.data.type === "update_file") {
+        //self.pyodide.FS.truncate(e.data.filename, 0);
+        // self.pyodide.FS.unlink(e.data.filename)
+        // self.pyodide.FS.writeFile(e.data.filename, e.data.content);
+        // self.pyodide.FS.utime(e.data.filename, Date.now(), Date.now());
+        // let directory_parts = e.data.filename.split("/");
+        // const file_name = directory_parts.slice(-1);
+        // directory_parts = directory_parts.slice(0, -1);
+        // directory = directory_parts.join("/");
+        // directory_files = self.pyodide.FS.readdir(directory);
+        // feature_files = self.pyodide.FS.readdir("features/");
+        // console.log(feature_files)
+        // step_files = self.pyodide.FS.readdir("features/steps/");
+        // console.log(step_files)
+        //if(e.data.filename.endsWith(".py")){
+//         console.log("reloading module")
+//         self.pyodide.FS.truncate(e.data.filename, 0);
+//         self.pyodide.runPython(`from importlib.machinery import SourceFileLoader
+// module = SourceFileLoader("steps", "${e.data.filename}").load_module()`);
+//         console.log("file truncated")
+        self.pyodide.FS.writeFile(`/working/${e.data.filename}`, e.data.content);
+        console.log(self.pyodide.FS.stat(`/working/${e.data.filename}`))
+//         self.pyodide.runPython(`from time import sleep
+// sleep(4)`);
+//         self.pyodide.runPython(`from importlib.machinery import SourceFileLoader
+// module = SourceFileLoader("steps", "${e.data.filename}").load_module()`);
+//         console.log("reloaded module")
+        //}
+        const directory_parts = e.data.filename.split("/");
+        let mod_name = directory_parts.slice(-1)[0]
+        mod_name = mod_name.replace(".py", "");
+        console.log(`mod_name: ${mod_name}`)
+        const directory_paths = directory_parts.slice(0, -1);
+        let module_id = directory_paths.join(".")
+        module_id += "."
+        module_id += mod_name
+        console.log(`Reloading module: ${module_id}`)
+        self.pyodide.runPython(`import importlib
+# import ${module_id} as mod_name
+global succeded
+try:
+    importlib.reload(${mod_name})
+except:
+    pass
+    # importlib.load(${mod_name})
+succeded = "yes"`);
+        console.log(`Module reload succeeded: ${self.pyodide.globals.get("succeded")}`);
+        postMessage({ type: "ready" });
+        // self.pyodide.runPython(`global globs\nglobs=globals()`)
+        // console.log(self.pyodide.globals.get("globs"));
+//         self.pyodide.runPython(`import types
+// import sys
+// global curr_imports
+// def get_all_imports():
+//     modulenames = set(sys.modules) & set(globals())
+//     allmodules = [sys.modules[name] for name in modulenames]
+//     return allmodules
+
+// def get_imports():
+//     imp_list = []
+//     for name, val in globals().items():
+//         if isinstance(val, types.ModuleType):
+//             imp_list.append(val.__name__)
+//     return imp_list
+// curr_imports = get_all_imports()`);
+// console.log(self.pyodide.globals.get("curr_imports"));
+    }
     if (e.data.type === "file") {
-        self.pyodide.runPython(`with open("${e.data.filename}", "w") as fh:
-            fh.write('''${e.data.content}''')`);
+        self.pyodide.FS.writeFile(`/working/${e.data.filename}`, e.data.content);
+        console.log(self.pyodide.FS.stat(`/working/${e.data.filename}`))
+//         self.pyodide.runPython(`import importlib.util
+// spec = importlib.util.spec_from_file_location("steps", "/home/pyodide/${e.data.filename}")
+// module = importlib.util.module_from_spec(spec)`);
+//         try{
+//             if(e.data.filename.endsWith(".py")){
+//                 self.pyodide.runPython(`from importlib.machinery import SourceFileLoader
+// module = SourceFileLoader("steps", "/home/pyodide/${e.data.filename}").load_module()`);    
+//         }
+//         } catch(error){
+
+//         }
         postMessage({ type: "ready" });
     }
     if (e.data.type === "run") {
