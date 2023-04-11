@@ -21,12 +21,14 @@ const runFeatures = (args) => {
 
 const getFeatureJson = (feature) => {
     runFeatures(`["-i", "/working/${feature}", "--f=json", "--dry-run", "--no-summary",
-    "--no-snippets", "-o", "feature.json"]`);
+    "--no-snippets", "-o", "/working/reports/feature.json"]`);
+self.pyodide.FS.syncfs(true, function (err) {
+});
     self.pyodide.runPython(`import json
 import ast
-
+import time
 def get_json_step_report():
-    with open("feature.json", "r") as file:
+    with open("/working/reports/feature.json", "r") as file:
         data = file.read()
     return json.loads(data)
 
@@ -85,6 +87,7 @@ global snippet_json
 snippet_json = json.dumps(snippets)
 `);
     return self.pyodide.globals.get("snippet_json");
+
 }
 
 self.onmessage = async (e) => {
@@ -100,7 +103,7 @@ self.onmessage = async (e) => {
             const mountDir = "/working"
             self.pyodide.FS.mkdir(mountDir);
             self.pyodide.FS.mount(self.pyodide.FS.filesystems.IDBFS, { root: "." }, mountDir);
-            self.pyodide.FS.mkdir("reports");
+            self.pyodide.FS.mkdir("/working/reports");
             self.pyodide.FS.mkdir("/working/features");
             self.pyodide.FS.mkdir("/working/features/steps");
             postMessage({ type: "log", msg: "initialization done!" });
@@ -155,7 +158,11 @@ except:
     # importlib.load(${mod_name})
 succeded = "yes"`);
         console.log(`Module reload succeeded: ${self.pyodide.globals.get("succeded")}`);
-        postMessage({ type: "ready" });
+        self.pyodide.FS.syncfs(true, function (err) {
+            // handle callback
+            postMessage({ type: "ready" });
+        });
+        //postMessage({ type: "ready" });
         // self.pyodide.runPython(`global globs\nglobs=globals()`)
         // console.log(self.pyodide.globals.get("globs"));
 //         self.pyodide.runPython(`import types

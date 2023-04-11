@@ -63,7 +63,7 @@ class FeatureHolder extends Component {
                     worker.postMessage({ type: "file", filename: file, content: text })
                     fileCount++;
                     if(fileCount === config.fileOptions.length){
-                        this.worker.postMessage({ type: "snippets" })
+                        //this.worker.postMessage({ type: "snippets" })
                     }
                 })
             });
